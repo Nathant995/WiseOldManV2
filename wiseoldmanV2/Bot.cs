@@ -39,7 +39,7 @@ namespace wiseoldmanV2
             {
                 await Task.Delay(2000);
 
-                string token = "MTA2ODI0MzYyODkxODU3NTIzNA.G1ZQ2P.3mgKaC_7lyUyaBZJpNjfndCPnzYvivOmXN0fPA";
+                string token = "{TOKEN}";
 
                 Console.ForegroundColor = ConsoleColor.Green;
 
