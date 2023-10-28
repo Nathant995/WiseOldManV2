@@ -21,7 +21,7 @@ public class HolidayEventManager
 
     private readonly Dictionary<ulong, ulong> _eventChannels = new Dictionary<ulong, ulong>
     {
-        // Add your guild and channel pairs here
+        // Add guild and channel pairs here
         { 686840457334227129, 686840457338421251 },
         { 715197288984870932, 716355312449355786 }
     };
@@ -32,10 +32,10 @@ public class HolidayEventManager
         _client = client;
         _events = new List<HolidayEvent>();
 
-        // Subscribe to the ClientReady event when the bot is ready
+        
         _client.Ready += ClientReadyAsync;
 
-        // Add Halloween event
+        // Halloween event
         AddHolidayEvent("Halloween", new DateTime(DateTime.Now.Year, 10, 31, 0, 0, 0), () => new DiscordEmbedBuilder
         {
             Title = "🎃 Happy Halloween! 🎃",
@@ -47,7 +47,7 @@ public class HolidayEventManager
             }
         });
 
-        // Add Christmas event
+        // Christmas event
         AddHolidayEvent("Christmas", new DateTime(DateTime.Now.Year, 12, 25, 0, 0, 0), () => new DiscordEmbedBuilder
         {
             Title = "🎄 Merry Christmas! 🎄",
@@ -59,7 +59,7 @@ public class HolidayEventManager
             }
         });
 
-        // Add New Year's Day event
+        // New Year's Day event
         AddHolidayEvent("New Year's Day", new DateTime(DateTime.Now.Year + 1, 1, 1, 0, 0, 0), () => new DiscordEmbedBuilder
         {
             Title = "🎉 Happy New Year! 🎉",
@@ -99,7 +99,7 @@ public class HolidayEventManager
     {
         await Task.Delay(3000); // Delay to ensure the bot is fully connected
 
-        // Create a daily timer that checks for upcoming events
+        // Daily timer that checks for upcoming events
         var dailyTimer = new System.Timers.Timer(24 * 60 * 60 * 1000); // 24 hours in milliseconds
         dailyTimer.Elapsed += async (_, _) => await CheckForUpcomingEvents();
         dailyTimer.Start();

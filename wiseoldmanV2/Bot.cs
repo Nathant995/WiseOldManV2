@@ -28,7 +28,7 @@ namespace wiseoldmanV2
         public static InteractivityExtension Interactivity { get; private set; }
 
 
-        // Property to expose the Discord client instance
+        
         public DiscordClient Client
         {
             get { return _client; }
@@ -40,7 +40,7 @@ namespace wiseoldmanV2
             {
                 await Task.Delay(2000);
 
-                string token = "${KEY}"; //Remove before Uploa
+                string token = "{TOKEN}";
 
                 Console.ForegroundColor = ConsoleColor.Green;
 
@@ -189,28 +189,28 @@ namespace wiseoldmanV2
                             var username = nextMessageResult.Result.Content.Trim();
                             var filePath = "kos.txt";
 
-                            // Read the current KOS list
+                            
                             var kosList = File.ReadAllLines(filePath).ToList();
 
                             if (kosList.Contains(username))
                             {
-                                // Remove the username from the KOS list
+                                
                                 kosList.Remove(username);
                                 File.WriteAllLines(filePath, kosList);
 
-                                // Send a confirmation message
+                                
                                 var confirmationMessage = new DiscordFollowupMessageBuilder()
                                     .WithContent($"Removed {username} from the KOS list.")
                                     .AsEphemeral(true);
 
                                 await e.Interaction.CreateFollowupMessageAsync(confirmationMessage);
 
-                                // Delete the user's name response
+                               
                                 await nextMessageResult.Result.DeleteAsync();
                             }
                             else
                             {
-                                // If the username doesn't exist, send an error message
+                                
                                 var errorMessage = new DiscordFollowupMessageBuilder()
                                     .WithContent("The username does not exist in the KOS list.")
                                     .AsEphemeral(true);
@@ -368,7 +368,7 @@ namespace wiseoldmanV2
 
         }
 
-        public class UtilitySlashCommands : ApplicationCommandModule // Inherit from ApplicationCommandModule
+        public class UtilitySlashCommands : ApplicationCommandModule 
         {
 
             [SlashCommand("purge", "Deletes a given amount of messages in the channel.")]
@@ -439,6 +439,11 @@ namespace wiseoldmanV2
             {
                 // GitHub repository URL
                 string githubRepoUrl = "https://api.github.com/repos/Nathant995/WiseOldManV2";
+
+                //Logging
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine($"[GIT] Source Code Requested from {ctx.Member.Username} in guild {ctx.Guild.Name}, channel {ctx.Channel.Name} at {DateTime.Now} - Message sent successfully.");
+                Console.ForegroundColor = ConsoleColor.White;
 
                 // Bot avatar URL
                 string botAvatarUrl = ctx.Client.CurrentUser.AvatarUrl;

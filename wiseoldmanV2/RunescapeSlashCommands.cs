@@ -7,7 +7,7 @@ using System.Globalization;
 using DSharpPlus;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using System.Text;
 
 namespace wiseoldmanV2
 {
@@ -167,23 +167,20 @@ namespace wiseoldmanV2
             );
         }
 
-
-        [SlashCommand("stats", "Search RuneScape hiscores for a player's stats (RS3)")]
-        public async Task GetStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        [SlashCommand("osstats", "Search Old School RuneScape hiscores for a player's stats")]
+        public async Task GetOSStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
         {
             try
             {
-                string url = $"https://secure.runescape.com/m=hiscore/index_lite.ws?player={playerName}";
+                // Replace spaces with underscores in the player's name for the URL
+                string urlPlayerName = playerName.Replace(" ", "_");
+                string url = $"https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player={urlPlayerName}";
                 string response = await _httpClient.GetStringAsync(url);
                 string[] stats = response.Split('\n');
 
-                var embed = new DiscordEmbedBuilder
-                {
-                    Title = $"{playerName}'s RS3 Stats",
-                    Color = new DiscordColor(252, 185, 0), // Green color
-                };
-
-                string summary = "";
+                var table = new StringBuilder();
+                table.AppendLine("Skill           Rank        Level     XP   ");
+                table.AppendLine("_______________________________________\n");
 
                 for (int i = 0; i < stats.Length; i++)
                 {
@@ -191,23 +188,33 @@ namespace wiseoldmanV2
 
                     if (stat.Length >= 3)
                     {
+                        var rank = stat[0];
                         var skillName = GetSkillName(i);
                         var level = stat[1];
                         var experience = stat[2];
 
-                        string formattedXP = FormatXP(experience);
+                        string formattedSkill = skillName.PadRight(14); // Adjust the padding as needed
+                        string formattedRank = FormatRank(rank).PadRight(14); // Adjust the padding as needed
+                        string formattedLevel = level.PadRight(8); // Adjust the padding as needed
+                        string formattedXP = FormatXP(experience).PadRight(20); // Adjust the padding as needed
 
-                        summary += $"**{skillName}:** Level {level}, Exp {formattedXP}\n";
+                        table.AppendLine($"{formattedSkill}{formattedRank}{formattedLevel}{formattedXP}");
                     }
                 }
 
-                embed.Description = summary;
-                string rsLink = $"[View Full Stats](https://secure.runescape.com/m=hiscore/a=12/compare?user1={playerName})";
-                embed.AddField("Full Stats", rsLink);
-                embed.WithFooter("*Note: Data may be slightly inaccurate due to Refresh times.");
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s OSRS Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                    Description = "```" + table.ToString() + "```"
+                };
+
+                string osrsLink = $"[View Full OSRS Stats](https://secure.runescape.com/m=hiscore_oldschool/a=12/compare?user1={urlPlayerName})";
+                embed.AddField("Full Stats", osrsLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to refresh times.");
 
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
-                    .WithContent($"{ctx.User.Mention}, heres the highscores stats for {playerName}:")
+                    .WithContent($"{ctx.User.Mention}, here's the Old School RuneScape high scores for {playerName}:")
                     .AddEmbed(embed)
                 );
             }
@@ -220,6 +227,79 @@ namespace wiseoldmanV2
             }
         }
 
+
+
+        [SlashCommand("stats", "Search RuneScape hiscores for a player's stats (RS3)")]
+        public async Task GetStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                // Replace spaces with underscores in the player's name for the URL
+                string urlPlayerName = playerName.Replace(" ", "_");
+                string url = $"https://secure.runescape.com/m=hiscore/index_lite.ws?player={urlPlayerName}";
+                string response = await _httpClient.GetStringAsync(url);
+                string[] stats = response.Split('\n');
+
+                var table = new StringBuilder();
+                table.AppendLine("Skill           Rank        Level     XP   ");
+                table.AppendLine("___________________________________________\n");
+
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    var stat = stats[i].Split(',');
+
+                    if (stat.Length >= 3)
+                    {
+                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
+                        var level = stat[1];
+                        var experience = stat[2];
+
+                        string formattedSkill = skillName.PadRight(14); // Adjust the padding as needed
+                        string formattedRank = FormatRank(stat[0]).PadRight(14); // Adjust the padding as needed
+                        string formattedLevel = level.PadRight(8); // Adjust the padding as needed
+                        string formattedXP = FormatXP(experience).PadRight(20); // Adjust the padding as needed
+
+                        table.AppendLine($"{formattedSkill}{formattedRank}{formattedLevel}{formattedXP}");
+                    }
+                }
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s RS3 Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                    Description = "```" + table.ToString() + "```"
+                };
+
+                string rsLink = $"[View Full Stats](https://secure.runescape.com/m=hiscore/a=12/compare?user1={urlPlayerName})";
+                embed.AddField("Full Stats", rsLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to Refresh times.");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the highscores stats for {playerName}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+
+        private string FormatRank(string rank)
+        {
+            if (long.TryParse(rank, out long rankValue))
+            {
+                Console.WriteLine($"Parsed rank: {rankValue}");
+                return rankValue.ToString("N0", CultureInfo.InvariantCulture);
+            }
+
+            Console.WriteLine($"Invalid rank format: {rank}");
+            return rank;
+        }
         // Define a function to map index to skill name based on the RuneScape hiscores order
         private string GetSkillName(int index)
         {

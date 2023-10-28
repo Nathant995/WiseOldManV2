@@ -15,7 +15,7 @@ namespace wiseoldmanV2
         // Define a dictionary to store MessageID and ChannelID
         private readonly Dictionary<ulong, ulong> messageChannelMap = new Dictionary<ulong, ulong>();
 
-        #region Interaction Commands (Buttons & Dropdown Menus)
+        #region Interaction Commands (Buttons & Dropdown Menus) TEST CASE BUTTONS
 
         [SlashCommand("BetterButtonTest", "Nath's Attempt at better buttons")]
         public async Task BetterButton(InteractionContext ctx)

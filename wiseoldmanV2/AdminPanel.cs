@@ -144,7 +144,7 @@ namespace wiseoldmanV2
             lblPanelTime.Text = formattedDateTime;
         }
 
-  
+
     }
 }
 

@@ -10,8 +10,8 @@ namespace wiseoldmanV2
     public class DMManager
     {
         private readonly DiscordClient _client;
-        private readonly ulong _reportChannelId = 715198677173534743; // Replace with the channel ID that reports need to be sent to (for now it's in the testing channel in the test discord)
-        private ulong _reportguildID = 715197288984870932; /// Replace with the guild ID that reports need to be sent to (for now it's in the testing discord)
+        private readonly ulong _reportChannelId = 715198677173534743; 
+        private ulong _reportguildID = 715197288984870932; 
 
         public DMManager(DiscordClient client)
         {
@@ -29,11 +29,11 @@ namespace wiseoldmanV2
             // Check if the reporting user is part of an allowed guild
             var sharedGuilds = _client.Guilds.Where(g => g.Value.Members.ContainsKey(e.Message.Author.Id) && g.Value.Members.ContainsKey(_client.CurrentUser.Id));
 
-            Console.ForegroundColor = ConsoleColor.Blue; // Set the console text color to blue
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine($"Reading Message content from user ID {e.Message.Author.Id} - {e.Message.Author.Username}");
             Console.WriteLine("Checking permissions...");
 
-            // Display information about shared guilds
+          
             Console.WriteLine($"User is part of {sharedGuilds.Count()} shared guild(s):");
 
             foreach (var sharedGuild in sharedGuilds)
@@ -44,14 +44,14 @@ namespace wiseoldmanV2
             if (!sharedGuilds.Any())
             {
                 Console.WriteLine("User does not have permission to use the W00ters Reporting function.");
-                Console.ResetColor(); // Reset the console text color
+                Console.ResetColor();
 
                 // Return a DM message to the user
                 var noPermissionEmbed = new DiscordEmbedBuilder
                 {
                     Title = "Permission Denied",
                     Description = "You do not have permission to use the W00ters Reporting function.",
-                    Color = new DiscordColor(255, 0, 0) // Red color
+                    Color = new DiscordColor(255, 0, 0) 
                 };
 
                 await e.Message.RespondAsync(embed: noPermissionEmbed);
@@ -61,7 +61,7 @@ namespace wiseoldmanV2
             if (messageContent.StartsWith("!report"))
             {
                 var reportMessage = messageContent.Substring("!report".Length).Trim();
-                var guild = await _client.GetGuildAsync(_reportguildID); // Replace with your guild ID
+                var guild = await _client.GetGuildAsync(_reportguildID); 
 
                 if (guild != null)
                 {
@@ -69,18 +69,18 @@ namespace wiseoldmanV2
 
                     if (reportChannel != null)
                     {
-                        var userAvatarUrl = e.Message.Author.AvatarUrl; // Get the reporting user's avatar URL
+                        var userAvatarUrl = e.Message.Author.AvatarUrl; 
                         var userAvatar = userAvatarUrl != null ? new DiscordEmbedBuilder.EmbedThumbnail { Url = userAvatarUrl } : null;
 
                         var embed = new DiscordEmbedBuilder
                         {
-                            Title = "🚨 Incoming W00ters Report! 🚨", // Use emojis to make it stand out
+                            Title = "🚨 Incoming W00ters Report! 🚨",
                             Description = reportMessage,
                             Footer = new DiscordEmbedBuilder.EmbedFooter
                             {
                                 Text = $"Reported by {e.Message.Author.Username} at {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                             },
-                            Color = new DiscordColor(255, 0, 0) // Red color
+                            Color = new DiscordColor(255, 0, 0) 
                         };
 
                         // Get the guilds that the user and bot share
@@ -97,7 +97,7 @@ namespace wiseoldmanV2
                 {
                     Title = "Report Received",
                     Description = "Thank you for your report. The W00ters ranks have been notified.",
-                    Color = new DiscordColor(0, 255, 0) // Green color
+                    Color = new DiscordColor(0, 255, 0)
                 };
 
                 await e.Message.RespondAsync(embed: responseEmbed);
@@ -110,7 +110,7 @@ namespace wiseoldmanV2
                 {
                     Title = "Ping Received",
                     Description = "Yes, I can see you.",
-                    Color = new DiscordColor(0, 255, 0) // Green color
+                    Color = new DiscordColor(0, 255, 0) 
                 };
 
                 await e.Message.RespondAsync(embed: pingResponseEmbed);
@@ -128,7 +128,7 @@ namespace wiseoldmanV2
                     Title = "I don't understand how to process that message...",
                     Description = "Try using a ! prefix to your message or ask Nath for support.",
                     ImageUrl = gifUrl,
-                    Color = new DiscordColor(255, 0, 0) // Red color
+                    Color = new DiscordColor(255, 0, 0) 
                 };
 
                 await e.Message.RespondAsync(embed: embed);

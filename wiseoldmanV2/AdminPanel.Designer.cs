@@ -92,7 +92,7 @@
             lblAppVersion.Name = "lblAppVersion";
             lblAppVersion.Size = new Size(37, 15);
             lblAppVersion.TabIndex = 4;
-            lblAppVersion.Text = "v0.2.0";
+            lblAppVersion.Text = "v0.2.2";
             // 
             // rtbMessageInput
             // 
