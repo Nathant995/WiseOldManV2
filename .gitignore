@@ -1,0 +1,21 @@
+# Ignore directories
+wiseoldmanV2/bin/
+wiseoldmanV2/obj/
+*.vsidx
+*.v2
+.vs/ProjectEvaluation/wiseoldmanv2.metadata.v7.bin
+.vs/ProjectEvaluation/wiseoldmanv2.projects.v7.bin
+.vs/wiseoldmanV2/v17/.suo
+*.v2
+wiseoldmanV2/bin/Debug/net6.0-windows/wiseoldmanV2.dll
+wiseoldmanV2/bin/Debug/net6.0-windows/wiseoldmanV2.pdb
+wiseoldmanV2/obj/Debug/net6.0-windows/ref/wiseoldmanV2.dll
+wiseoldmanV2/obj/Debug/net6.0-windows/refint/wiseoldmanV2.dll
+wiseoldmanV2/obj/Debug/net6.0-windows/wiseoldmanV2.csproj.CoreCompileInputs.cache
+wiseoldmanV2/obj/Debug/net6.0-windows/wiseoldmanV2.csproj.GenerateResource.cache
+wiseoldmanV2/obj/Debug/net6.0-windows/wiseoldmanV2.dll
+wiseoldmanV2/obj/Debug/net6.0-windows/wiseoldmanV2.pdb
+wiseoldmanV2/obj/Debug/net6.0-windows/wiseoldmanV2.csproj.CoreCompileInputs.cache
+wiseoldmanV2/obj/Debug/net6.0-windows/wiseoldmanV2.csproj.GenerateResource.cache
+.vs/wiseoldmanV2/v17/.suo
+.vs/wiseoldmanV2/v17/.suo
