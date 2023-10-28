@@ -10,6 +10,7 @@ using DSharpPlus.Interactivity; // Add this line
 using DSharpPlus.Interactivity.Extensions; // Add this line
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.Metadata;
+using System.Net.Http;
 
 
 namespace wiseoldmanV2
@@ -39,7 +40,7 @@ namespace wiseoldmanV2
             {
                 await Task.Delay(2000);
 
-                string token = "{TOKEN}";
+                string token = "${KEY}"; //Remove before Uploa
 
                 Console.ForegroundColor = ConsoleColor.Green;
 
@@ -432,11 +433,72 @@ namespace wiseoldmanV2
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(builder.Build()));
 
             }
+
+            [SlashCommand("source", "View Wise Old Man's Open Sourcecode")]
+            public async Task SourceCodeCommand(InteractionContext ctx)
+            {
+                // GitHub repository URL
+                string githubRepoUrl = "https://api.github.com/repos/Nathant995/WiseOldManV2";
+
+                // Bot avatar URL
+                string botAvatarUrl = ctx.Client.CurrentUser.AvatarUrl;
+
+                // Fetch additional information from the GitHub API
+                var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "WiseOldMan");
+
+                HttpResponseMessage response = await httpClient.GetAsync(githubRepoUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+
+                    // Parse the JSON response to extract repository information
+                    var repoInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(responseBody);
+                    string repoDescription = repoInfo.description;
+                    int starsCount = repoInfo.stargazers_count;
+
+                    // Get the total number of commits for the repository
+                    HttpResponseMessage commitResponse = await httpClient.GetAsync(githubRepoUrl + "/commits");
+                    var commitInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(await commitResponse.Content.ReadAsStringAsync());
+                    int commitCount = commitInfo.Count;
+
+                    // Get the total number of releases for the repository
+                    HttpResponseMessage releaseResponse = await httpClient.GetAsync(githubRepoUrl + "/releases");
+                    var releaseInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(await releaseResponse.Content.ReadAsStringAsync());
+                    int releaseCount = releaseInfo.Count;
+
+                    // Create an embed with information
+                    var embedBuilder = new DiscordEmbedBuilder
+                    {
+                        Title = "Under The Hood",
+                        Description = $"The Wise Old Man's Source Code can be found [here](https://github.com/Nathant995/WiseOldManV2).",
+                        Color = new DiscordColor(0x7289DA), 
+                        ImageUrl = botAvatarUrl, 
+                        Url = githubRepoUrl, 
+                    };
+
+                    // Add additional information to the embed
+                    embedBuilder.AddField("Description", repoDescription, false);
+                    embedBuilder.AddField("Stars", starsCount.ToString(), false);
+                    embedBuilder.AddField("Total Commits", commitCount.ToString(), false);
+                    embedBuilder.AddField("Total Releases", releaseCount.ToString(), false);
+
+                    var ephemeralResponse = new DiscordInteractionResponseBuilder()
+                        .AddEmbed(embedBuilder.Build())
+                        .AsEphemeral(true);
+
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, ephemeralResponse);
+                }
+            }
+
+
+
+
             [SlashCommand("noranks", "No ranks online reporting tool")]
             public async Task NoRanksCommand(InteractionContext ctx)
             {
-                ulong targetGuildId = 715197288984870932; // Replace with the actual guild ID
-                ulong targetChannelId = 715198677173534743; // Replace with the actual channel ID
+                ulong targetGuildId = 715197288984870932; 
+                ulong targetChannelId = 715198677173534743; 
 
                 var embed = new DiscordEmbedBuilder
                 {
