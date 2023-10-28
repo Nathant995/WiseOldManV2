@@ -6,8 +6,8 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using System.Linq;
-using DSharpPlus.Interactivity; // Add this line
-using DSharpPlus.Interactivity.Extensions; // Add this line
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions; 
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.Metadata;
 using System.Net.Http;
