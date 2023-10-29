@@ -8,6 +8,7 @@ using DSharpPlus;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace wiseoldmanV2
 {
@@ -229,7 +230,7 @@ namespace wiseoldmanV2
 
 
 
-        [SlashCommand("stats", "Search RuneScape hiscores for a player's stats (RS3)")]
+        [SlashCommand("RS3stats", "Search RuneScape hiscores for a player's stats (RS3)")]
         public async Task GetStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
         {
             try
@@ -284,6 +285,339 @@ namespace wiseoldmanV2
                 Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                     .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+        [SlashCommand("RS3_iron_stats", "Search RuneScape 3 Ironman hiscores for a player's stats")]
+        public async Task GetIronStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                string url = $"https://secure.runescape.com/m=hiscore_ironman/index_lite.ws?player={playerName}";
+                string response = await _httpClient.GetStringAsync(url);
+                string[] stats = response.Split('\n');
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s RS3 Ironman Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                };
+
+                string summary = "";
+
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    var stat = stats[i].Split(',');
+
+                    if (stat.Length >= 3)
+                    {
+                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
+                        var rank = FormatRank(stat[0]).PadRight(10); // Adjust the padding as needed
+                        var level = stat[1].PadRight(8); // Adjust the padding as needed
+                        var experience = FormatXP(stat[2]).PadRight(20); // Adjust the padding as needed
+
+                        summary += $"**{skillName}:** Rank {rank}, Level {level}, Exp {experience}\n";
+                    }
+                }
+
+                embed.Description = summary;
+                string ironLink = $"[View Full Ironman Stats](https://secure.runescape.com/m=hiscore/a=12/compare?user1={playerName})";
+                embed.AddField("Full Stats", ironLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to Refresh times.");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the RuneScape 3 Ironman high scores for {playerName}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+        [SlashCommand("RS3_hciron_stats", "Search RuneScape 3 Hardcore Ironman hiscores for a player's stats")]
+        public async Task GetHCIronStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                string url = $"https://secure.runescape.com/m=hiscore_hardcore_ironman/index_lite.ws?player={playerName}";
+                string response = await _httpClient.GetStringAsync(url);
+                string[] stats = response.Split('\n');
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s RS3 Hardcore Ironman Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                };
+
+                string summary = "";
+
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    var stat = stats[i].Split(',');
+
+                    if (stat.Length >= 3)
+                    {
+                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
+                        var rank = FormatRank(stat[0]).PadRight(10); // Adjust the padding as needed
+                        var level = stat[1].PadRight(8); // Adjust the padding as needed
+                        var experience = FormatXP(stat[2]).PadRight(20); // Adjust the padding as needed
+
+                        summary += $"**{skillName}:** Rank {rank}, Level {level}, Exp {experience}\n";
+                    }
+                }
+
+                embed.Description = summary;
+                string hcIronLink = $"[View Full Hardcore Ironman Stats](https://secure.runescape.com/m=hiscore_hardcore/a=12/compare?user1={playerName})";
+                embed.AddField("Full Stats", hcIronLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to Refresh times.");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the RuneScape 3 Hardcore Ironman high scores for {playerName}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+        [SlashCommand("os_iron_stats", "Search Old School RuneScape Ironman hiscores for a player's stats")]
+        public async Task GetOSIronStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                // Replace spaces with underscores in the player's name for the URL
+                string urlPlayerName = playerName.Replace(" ", "_");
+                string url = $"https://secure.runescape.com/m=hiscore_oldschool_ironman/index_lite.ws?player={urlPlayerName}";
+                string response = await _httpClient.GetStringAsync(url);
+                string[] stats = response.Split('\n');
+
+                var table = new StringBuilder();
+                table.AppendLine("Skill           Rank        Level     XP   ");
+                table.AppendLine("_______________________________________\n");
+
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    var stat = stats[i].Split(',');
+
+                    if (stat.Length >= 3)
+                    {
+                        var rank = stat[0];
+                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
+                        var level = stat[1];
+                        var experience = stat[2];
+
+                        string formattedSkill = skillName.PadRight(14); // Adjust the padding as needed
+                        string formattedRank = FormatRank(rank).PadRight(14); // Adjust the padding as needed
+                        string formattedLevel = level.PadRight(8); // Adjust the padding as needed
+                        string formattedXP = FormatXP(experience).PadRight(20); // Adjust the padding as needed
+
+                        table.AppendLine($"{formattedSkill}{formattedRank}{formattedLevel}{formattedXP}");
+                    }
+                }
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s OS Ironman Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                    Description = "```" + table.ToString() + "```"
+                };
+
+                string osIronLink = $"[View Full OS Ironman Stats](https://secure.runescape.com/m=hiscore_oldschool_ironman/a=12/compare?user1={urlPlayerName})";
+                embed.AddField("Full Stats", osIronLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to refresh times.");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the Old School RuneScape Ironman high scores for {playerName}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+        [SlashCommand("os_hciron_stats", "Search Old School RuneScape Hardcore Ironman hiscores for a player's stats")]
+        public async Task GetOSHCIronStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                // Replace spaces with underscores in the player's name for the URL
+                string urlPlayerName = playerName.Replace(" ", "_");
+                string url = $"https://secure.runescape.com/m=hiscore_oldschool_hardcore_ironman/index_lite.ws?player={urlPlayerName}";
+                string response = await _httpClient.GetStringAsync(url);
+                string[] stats = response.Split('\n');
+
+                var table = new StringBuilder();
+                table.AppendLine("Skill           Rank        Level     XP   ");
+                table.AppendLine("_______________________________________\n");
+
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    var stat = stats[i].Split(',');
+
+                    if (stat.Length >= 3)
+                    {
+                        var rank = stat[0];
+                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
+                        var level = stat[1];
+                        var experience = stat[2];
+
+                        string formattedSkill = skillName.PadRight(14); // Adjust the padding as needed
+                        string formattedRank = FormatRank(rank).PadRight(14); // Adjust the padding as needed
+                        string formattedLevel = level.PadRight(8); // Adjust the padding as needed
+                        string formattedXP = FormatXP(experience).PadRight(20); // Adjust the padding as needed
+
+                        table.AppendLine($"{formattedSkill}{formattedRank}{formattedLevel}{formattedXP}");
+                    }
+                }
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s OS Hardcore Ironman Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                    Description = "```" + table.ToString() + "```"
+                };
+
+                string osHCIronLink = $"[View Full OS Hardcore Ironman Stats](https://secure.runescape.com/m=hiscore_oldschool_hardcore_ironman/a=12/compare?user1={urlPlayerName})";
+                embed.AddField("Full Stats", osHCIronLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to refresh times.");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the Old School RuneScape Hardcore Ironman high scores for {playerName}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+        [SlashCommand("os_uim_stats", "Search Old School RuneScape Ultimate Ironman hiscores for a player's stats")]
+        public async Task GetOSUIMStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                // Replace spaces with underscores in the player's name for the URL
+                string urlPlayerName = playerName.Replace(" ", "_");
+                string url = $"https://secure.runescape.com/m=hiscore_oldschool_ultimate/index_lite.ws?player={urlPlayerName}";
+                string response = await _httpClient.GetStringAsync(url);
+                string[] stats = response.Split('\n');
+
+                var table = new StringBuilder();
+                table.AppendLine("Skill           Rank        Level     XP   ");
+                table.AppendLine("_______________________________________\n");
+
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    var stat = stats[i].Split(',');
+
+                    if (stat.Length >= 3)
+                    {
+                        var rank = stat[0];
+                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
+                        var level = stat[1];
+                        var experience = stat[2];
+
+                        string formattedSkill = skillName.PadRight(14); // Adjust the padding as needed
+                        string formattedRank = FormatRank(rank).PadRight(14); // Adjust the padding as needed
+                        string formattedLevel = level.PadRight(8); // Adjust the padding as needed
+                        string formattedXP = FormatXP(experience).PadRight(20); // Adjust the padding as needed
+
+                        table.AppendLine($"{formattedSkill}{formattedRank}{formattedLevel}{formattedXP}");
+                    }
+                }
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{playerName}'s OS Ultimate Ironman Stats",
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                    Description = "```" + table.ToString() + "```"
+                };
+
+                string osUIMLink = $"[View Full OS Ultimate Ironman Stats](https://secure.runescape.com/m=hiscore_oldschool_ultimate/a=12/compare?user1={urlPlayerName})";
+                embed.AddField("Full Stats", osUIMLink);
+                embed.WithFooter("*Note: Data may be slightly inaccurate due to refresh times.");
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the Old School RuneScape Ultimate Ironman high scores for {playerName}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the stats. Please try again later.")
+                );
+            }
+        }
+
+        [SlashCommand("rs_totalcount", "Get total player count for RuneScape")]
+        public async Task GetTotalCount(InteractionContext ctx)
+        {
+            try
+            {
+                // Get the player count
+                string playerCountUrl = "http://www.runescape.com/player_count.js?varname=iPlayerCount&callback=jQuery000000000000000_0000000000&_=0";
+                string playerCountResponse = await _httpClient.GetStringAsync(playerCountUrl);
+
+                // Get the total user count
+                string totalUserCountUrl = "https://secure.runescape.com/m=account-creation-reports/rsusertotal.ws";
+                string totalUserCountResponse = await _httpClient.GetStringAsync(totalUserCountUrl);
+
+                // Parse the player count response
+                var match = Regex.Match(playerCountResponse, @"iPlayerCount = (\d+);");
+
+                if (match.Success)
+                {
+                    int playerCount = int.Parse(match.Groups[1].Value);
+                    var embed = new DiscordEmbedBuilder
+                    {
+                        Title = "RuneScape Total Player Count",
+                        Color = new DiscordColor(252, 185, 0), // Gold color
+                        Description = $"Currently, there are {playerCount} players online in RuneScape."
+                    };
+
+                    embed.AddField("Total User Count", totalUserCountResponse.Trim());
+
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                        .AddEmbed(embed)
+                        .AsEphemeral(true) // Make the response ephemeral
+                    );
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                        .WithContent("Unable to retrieve player count information.")
+                        .AsEphemeral(true) // Make the response ephemeral
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneScape data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the information. Please try again later.")
+                    .AsEphemeral(true) // Make the response ephemeral
                 );
             }
         }
