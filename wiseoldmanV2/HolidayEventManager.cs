@@ -51,7 +51,7 @@ public class HolidayEventManager
         AddHolidayEvent("Christmas", new DateTime(DateTime.Now.Year, 12, 25, 0, 0, 0), () => new DiscordEmbedBuilder
         {
             Title = "🎄 Merry Christmas! 🎄",
-            Description = "Ho Ho Ho! 🎅 May your Christmas sparkle with moments of love, laughter and goodwill. And may the year ahead be full of contentment and joy. Have a Merry Christmas and we look forward to seeing you in the New Year.",
+            Description = "Ho Ho Ho! 🎅 May your Christmas sparkle with moments of love, laughter and goodwill. And may the year ahead be full of joy and positive vibes. Have a Merry Christmas w00ters!",
             Color = new DiscordColor(0xFF0000), // Red color
             Footer = new DiscordEmbedBuilder.EmbedFooter
             {
