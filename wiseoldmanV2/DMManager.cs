@@ -61,7 +61,7 @@ namespace wiseoldmanV2
             if (messageContent.StartsWith("!report"))
             {
                 var reportMessage = messageContent.Substring("!report".Length).Trim();
-                var guild = await _client.GetGuildAsync(_reportguildID); 
+                var guild = await _client.GetGuildAsync(_reportguildID);
 
                 if (guild != null)
                 {
@@ -69,7 +69,7 @@ namespace wiseoldmanV2
 
                     if (reportChannel != null)
                     {
-                        var userAvatarUrl = e.Message.Author.AvatarUrl; 
+                        var userAvatarUrl = e.Message.Author.AvatarUrl;
                         var userAvatar = userAvatarUrl != null ? new DiscordEmbedBuilder.EmbedThumbnail { Url = userAvatarUrl } : null;
 
                         var embed = new DiscordEmbedBuilder
@@ -80,7 +80,7 @@ namespace wiseoldmanV2
                             {
                                 Text = $"Reported by {e.Message.Author.Username} at {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                             },
-                            Color = new DiscordColor(255, 0, 0) 
+                            Color = new DiscordColor(255, 0, 0)
                         };
 
                         // Get the guilds that the user and bot share
@@ -110,15 +110,70 @@ namespace wiseoldmanV2
                 {
                     Title = "Ping Received",
                     Description = "Yes, I can see you.",
-                    Color = new DiscordColor(0, 255, 0) 
+                    Color = new DiscordColor(0, 255, 0)
                 };
 
                 await e.Message.RespondAsync(embed: pingResponseEmbed);
             }
+            else if (messageContent.StartsWith("!version"))
+            {
+                // You'll need to use an HTTP client to fetch the version from GitHub.
+                // I'll provide an example using HttpClient.
+
+                using (var httpClient = new HttpClient())
+                {
+                    // GitHub raw URL to the version file.
+                    string githubVersionUrl = "https://raw.githubusercontent.com/Nathant995/WiseOldManV2/main/wiseoldmanV2/loader.cs";
+
+                    try
+                    {
+                        // Send a GET request to fetch the content of the version file.
+                        var response = await httpClient.GetAsync(githubVersionUrl);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // Read the content of the file.
+                            string versionFileContent = await response.Content.ReadAsStringAsync();
+
+                            // Search for the version line and extract the version number.
+                            string versionLine = versionFileContent.Split('\n').FirstOrDefault(line => line.Contains("string version"));
+                            string version = versionLine?.Split('"')[1]; // Extract the version number between quotes.
+
+                            if (version != null)
+                            {
+                                // Respond with the bot's version.
+                                var versionResponseEmbed = new DiscordEmbedBuilder
+                                {
+                                    Title = "Wise Old Man Build",
+                                    Description = $"I am currently operating on build: **{version}**.",
+                                    Color = new DiscordColor(108, 202, 255)
+                                };
+
+                                await e.Message.RespondAsync(embed: versionResponseEmbed);
+                            }
+                            else
+                            {
+                                // If the version line was not found in the file, respond with an error.
+                                await e.Message.RespondAsync("Failed to retrieve the bot's version.");
+                            }
+                        }
+                        else
+                        {
+                            // If the request to GitHub fails, respond with an error.
+                            await e.Message.RespondAsync("Failed to retrieve the bot's version.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle any exceptions that may occur during the request.
+                        await e.Message.RespondAsync($"An error occurred: {ex.Message}");
+                    }
+                }
+            }
             else
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"Non command DM Recieved from; {e.Message.Author.Id} - {e.Message.Author.Username}");
+                Console.WriteLine($"Non-command DM Received from; {e.Message.Author.Id} - {e.Message.Author.Username}");
                 Console.WriteLine("Attempting to handle Direct Message");
                 Console.ForegroundColor = ConsoleColor.White;
                 // If the message doesn't match any recognized command, respond with an embedded message and a GIF
@@ -128,7 +183,7 @@ namespace wiseoldmanV2
                     Title = "I don't understand how to process that message...",
                     Description = "Try using a ! prefix to your message or ask Nath for support.",
                     ImageUrl = gifUrl,
-                    Color = new DiscordColor(255, 0, 0) 
+                    Color = new DiscordColor(255, 0, 0)
                 };
 
                 await e.Message.RespondAsync(embed: embed);
@@ -136,3 +191,4 @@ namespace wiseoldmanV2
         }
     }
 }
+        

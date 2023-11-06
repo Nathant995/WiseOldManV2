@@ -90,9 +90,9 @@
             lblAppVersion.ForeColor = SystemColors.ButtonHighlight;
             lblAppVersion.Location = new Point(446, 502);
             lblAppVersion.Name = "lblAppVersion";
-            lblAppVersion.Size = new Size(37, 15);
+            lblAppVersion.Size = new Size(43, 15);
             lblAppVersion.TabIndex = 4;
-            lblAppVersion.Text = "v0.4.0";
+            lblAppVersion.Text = "v0.6.18";
             // 
             // rtbMessageInput
             // 

@@ -36,7 +36,7 @@ public class HolidayEventManager
         _client.Ready += ClientReadyAsync;
 
         // Halloween event
-        AddHolidayEvent("Halloween", new DateTime(DateTime.Now.Year, 10, 31, 0, 0, 0), () => new DiscordEmbedBuilder
+        AddHolidayEvent("Halloween", new DateTime(DateTime.Now.Year + 1, 10, 31, 0, 0, 0), () => new DiscordEmbedBuilder
         {
             Title = "🎃 Happy Halloween! 🎃",
             Description = "Boo! 👻 It's time for tricks and treats! Wishing you a frightfully fun Halloween filled with magical surprises! May you get lots of treats that are good to eat!",

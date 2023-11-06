@@ -22,6 +22,8 @@ namespace wiseoldmanV2
         private System.Timers.Timer _healthCheckTimer;
         private HolidayEventManager _holidayEventManager;
         private ButtonManager _buttonManager;
+        private System.Timers.Timer _cacheBuildingTimer;
+        private RustMemeManager _memeManager;
         private readonly Dictionary<ulong, ulong> messageChannelMap = new Dictionary<ulong, ulong>();
 
 
@@ -83,7 +85,19 @@ namespace wiseoldmanV2
                 _healthCheckTimer.AutoReset = true;
                 _healthCheckTimer.Start();
 
+                //Rust Meme Cache Builder;
+                // Parameters for RustMemeManager
+                ulong targetGuildId = 715197288984870932; // Replace with your target guild ID
+                ulong targetChannelId = 718127567273721897; // Replace with your target channel ID
+                string cacheFilePath = "rustmeme.cache"; // Replace with the path to your cache file
 
+                // Initialize RustMemeManager
+                _memeManager = new RustMemeManager(_client, targetGuildId, targetChannelId, cacheFilePath);
+                // Build the cache on startup
+                _memeManager.BuildCacheOnStartup();
+
+
+                _memeManager.StartCacheBuildingTimer();
 
                 await Task.Delay(-1);
 

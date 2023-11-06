@@ -20,70 +20,72 @@ namespace wiseoldmanV2
         private static readonly HttpClient _httpClient = new HttpClient();
 
         #region GE
-      //  [SlashCommand("geinfo", "Get information about a RuneScape item.")]
-      //  public async Task GeInfoCommand(InteractionContext ctx, [Option("item", "The name of the item.")] string item)
-      //  {
+        //  [SlashCommand("geinfo", "Get information about a RuneScape item.")]
+        //  public async Task GeInfoCommand(InteractionContext ctx, [Option("item", "The name of the item.")] string item)
+        //  {
         //    try
-          //  {
-            //    // Fetch the JSON data from the provided URL
-             //   var httpClient = new HttpClient();
-              //  var jsonData = await httpClient.GetStringAsync("https://runescape.wiki/?title=Module:GEIDs/data.json&action=raw&ctype=application%2Fjson");
+        //  {
+        //    // Fetch the JSON data from the provided URL
+        //   var httpClient = new HttpClient();
+        //  var jsonData = await httpClient.GetStringAsync("https://runescape.wiki/?title=Module:GEIDs/data.json&action=raw&ctype=application%2Fjson");
 
-                // Parse the JSON data
-              //  var data = JsonConvert.DeserializeObject<JObject>(jsonData);
+        // Parse the JSON data
+        //  var data = JsonConvert.DeserializeObject<JObject>(jsonData);
 
-                // Try to find the item ID by name (case-insensitive)
-//                var itemId = FindItemIdByName(data, item);
+        // Try to find the item ID by name (case-insensitive)
+        //                var itemId = FindItemIdByName(data, item);
 
-  //              if (itemId.HasValue)
-    //            {
-      //              var geManager = new GeManager();
+        //              if (itemId.HasValue)
+        //            {
+        //              var geManager = new GeManager();
         //            var itemInfoEmbedBuilder = await geManager.GetItemInfoByIdAsync(itemId.Value);
 
-                    // Fetch and add the price graph data to the embed
-          //          var priceGraphUrl = await geManager.GetItemPriceGraphUrlAsync(itemId.Value);
+        // Fetch and add the price graph data to the embed
+        //          var priceGraphUrl = await geManager.GetItemPriceGraphUrlAsync(itemId.Value);
 
-                    // Add the field to the embed
-            //        itemInfoEmbedBuilder.AddField("Price Trend Graph", priceGraphUrl, true);
+        // Add the field to the embed
+        //        itemInfoEmbedBuilder.AddField("Price Trend Graph", priceGraphUrl, true);
 
-                //    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(itemInfoEmbedBuilder.Build()));
-              //  }
-             //   else
-               // {
-                    // Item not found in the JSON data
-                 //   await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Item not found."));
-             //   }
-           // }
-          //  catch (Exception ex)
-          //  {
-                // Handle any errors
-            //    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"An error occurred: {ex.Message}"));
-           // }
-       // }
+        //    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(itemInfoEmbedBuilder.Build()));
+        //  }
+        //   else
+        // {
+        // Item not found in the JSON data
+        //   await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Item not found."));
+        //   }
+        // }
+        //  catch (Exception ex)
+        //  {
+        // Handle any errors
+        //    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent($"An error occurred: {ex.Message}"));
+        // }
+        // }
 
-       // private int? FindItemIdByName(JObject data, string itemName)
-       // {
-         //   foreach (var property in data.Properties())
-         //   {
-           //     if (string.Equals(property.Name, itemName, StringComparison.OrdinalIgnoreCase))
-             //   {
-               //     return property.Value.Value<int>();
-             //   }
-           // }
-          //  return null; // Item not found
-       // }
+        // private int? FindItemIdByName(JObject data, string itemName)
+        // {
+        //   foreach (var property in data.Properties())
+        //   {
+        //     if (string.Equals(property.Name, itemName, StringComparison.OrdinalIgnoreCase))
+        //   {
+        //     return property.Value.Value<int>();
+        //   }
+        // }
+        //  return null; // Item not found
+        // }
 
         #endregion
 
         [SlashCommand("rustmeme", "Get a random Rust meme from the archives.")]
         public async Task RustMemeCommand(InteractionContext ctx)
         {
-            // Create an instance of RustMemeManager and call the method to get a random Rust meme
+            // Create an instance of RustMemeManager with the cache file path and call the method to get a random Rust meme
             ulong targetGuildId = 715197288984870932; //w00ters rank hub
             ulong targetChannelId = 718127567273721897; //Channel to scan for Rust Memes
-            var memeManager = new RustMemeManager(ctx.Client, targetGuildId, targetChannelId);
+            string cacheFilePath = "rustmeme.cache"; // Replace with the actual path
+            var memeManager = new RustMemeManager(ctx.Client, targetGuildId, targetChannelId, cacheFilePath);
             await memeManager.GetRandomRustMeme(ctx);
         }
+
 
 
         [SlashCommand("markdonalds", "Get that sweet MarkyDs")]
@@ -167,6 +169,65 @@ namespace wiseoldmanV2
                 .AddEmbed(embed)
             );
         }
+
+        [SlashCommand("Metrics", "Retrieve a player's RuneMetrics profile data (RS3)")]
+        public async Task GetMetrics(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
+        {
+            try
+            {
+                // Replace spaces with URL-encoded spaces in the player's name for the URL
+                string urlPlayerName = Uri.EscapeDataString(playerName);
+
+                string url = $"https://apps.runescape.com/runemetrics/profile/profile?user={urlPlayerName}&activities=20";
+                string response = await _httpClient.GetStringAsync(url);
+
+                var metricsData = JsonConvert.DeserializeObject<RuneMetricsProfile>(response);
+
+                // Fetch the user's avatar
+                string avatarUrl = $"http://secure.runescape.com/m=avatar-rs/{urlPlayerName}/chat.png";
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = $"{metricsData.Name}'s RuneMetrics Profile",
+                    Color = new DiscordColor(252, 185, 0),
+                };
+
+                // Format large numbers with commas
+                embed.AddField("**__Overall Rank__**", metricsData.Rank, true);
+                embed.AddField("**__Total Skill Level__**", metricsData.TotalSkill.ToString(), true);
+                embed.AddField("**__Total Experience__**", metricsData.TotalXP.ToString("N0"), true);
+                embed.AddField("**__Combat Level__**", metricsData.CombatLevel.ToString(), true);
+                embed.AddField("**__Magic Experience__**", metricsData.Magic.ToString("N0"), true);
+                embed.AddField("**__Melee Experience__**", metricsData.Melee.ToString("N0"), true);
+                embed.AddField("**__Ranged Experience__**", metricsData.Ranged.ToString("N0"), true);
+                embed.AddField("**__Quests Started__**", metricsData.QuestsStarted.ToString(), true);
+                embed.AddField("**__Quests Completed__**", metricsData.QuestsComplete.ToString(), true);
+                embed.AddField("**__Quests Not Started__**", metricsData.QuestsNotStarted.ToString(), true);
+                embed.AddField("**__Online Status__**", metricsData.LoggedIn == "true" ? "Online" : "Offline");
+
+                var activities = string.Join("\n", metricsData.Activities.Select(a => a.Text));
+                embed.AddField("**__Recent Activities__**", activities);
+                embed.WithThumbnail(avatarUrl);
+
+                var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                embed.WithFooter($"Metric data timestamp: {timestamp}", null);
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"{ctx.User.Mention}, here's the RuneMetrics profile data for **{playerName}**:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting RuneMetrics data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the RuneMetrics profile data. Please try again later.")
+                );
+            }
+        }
+
+
+
 
         [SlashCommand("osstats", "Search Old School RuneScape hiscores for a player's stats")]
         public async Task GetOSStats(InteractionContext ctx, [Option("player", "The player's name")] string playerName)
@@ -352,7 +413,7 @@ namespace wiseoldmanV2
                 var embed = new DiscordEmbedBuilder
                 {
                     Title = $"{playerName}'s RS3 Hardcore Ironman Stats",
-                    Color = new DiscordColor(252, 185, 0), // Gold color
+                    Color = new DiscordColor(252, 185, 0),
                 };
 
                 string summary = "";
@@ -363,10 +424,10 @@ namespace wiseoldmanV2
 
                     if (stat.Length >= 3)
                     {
-                        var skillName = GetSkillName(i).Replace("_", " "); // Replace underscores with spaces
-                        var rank = FormatRank(stat[0]).PadRight(10); // Adjust the padding as needed
-                        var level = stat[1].PadRight(8); // Adjust the padding as needed
-                        var experience = FormatXP(stat[2]).PadRight(20); // Adjust the padding as needed
+                        var skillName = GetSkillName(i).Replace("_", " ");
+                        var rank = FormatRank(stat[0]).PadRight(10);
+                        var level = stat[1].PadRight(8);
+                        var experience = FormatXP(stat[2]).PadRight(20);
 
                         summary += $"**{skillName}:** Rank {rank}, Level {level}, Exp {experience}\n";
                     }
@@ -570,6 +631,44 @@ namespace wiseoldmanV2
                 );
             }
         }
+
+        [SlashCommand("ge", "Check Grand Exchange data for an item by its ID")]
+        public async Task GetGrandExchangeData(InteractionContext ctx, [Option("item", "The item ID")] long itemId)
+        {
+            try
+            {
+                // Get the item details using the provided item ID
+                string detailUrl = $"https://services.runescape.com/m=itemdb_rs/api/catalogue/detail.json?item={itemId}";
+                var detailResponse = await _httpClient.GetStringAsync(detailUrl);
+                var itemDetail = JsonConvert.DeserializeObject<JObject>(detailResponse);
+
+                var embed = new DiscordEmbedBuilder
+                {
+                    Title = itemDetail["item"]["name"].ToString(),
+                    Color = new DiscordColor(252, 185, 0), // Gold color
+                };
+
+                embed.AddField("Description", itemDetail["item"]["description"].ToString());
+                embed.AddField("Current Price", itemDetail["item"]["current"]["price"].ToString());
+                embed.AddField("Price Trend", itemDetail["item"]["current"]["trend"].ToString());
+                embed.AddField("Members Only", itemDetail["item"]["members"].ToString() == "true" ? "Yes" : "No");
+
+                // You can add more fields as needed
+
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent($"Here's the Grand Exchange data for the item with ID {itemId}:")
+                    .AddEmbed(embed)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting Grand Exchange data: {ex.Message}");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
+                    .WithContent("An error occurred while fetching the Grand Exchange data. Please try again later.")
+                );
+            }
+        }
+
 
         [SlashCommand("rs_totalcount", "Get total player count for RuneScape")]
         public async Task GetTotalCount(InteractionContext ctx)
