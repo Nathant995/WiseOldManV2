@@ -23,7 +23,7 @@ namespace wiseoldmanV2
         private HolidayEventManager _holidayEventManager;
         private ButtonManager _buttonManager;
         private System.Timers.Timer _cacheBuildingTimer;
-        private RustMemeManager _memeManager;
+        public RustMemeManager _memeManager;
         private readonly Dictionary<ulong, ulong> messageChannelMap = new Dictionary<ulong, ulong>();
 
 
@@ -31,7 +31,7 @@ namespace wiseoldmanV2
         public static InteractivityExtension Interactivity { get; private set; }
 
 
-        
+
         public DiscordClient Client
         {
             get { return _client; }
@@ -56,12 +56,12 @@ namespace wiseoldmanV2
                 });
                 _buttonManager = new ButtonManager(_client);
                 _client.Ready += Client_ReadyAsync;
-                // Initialize the ButtonManager
                 _buttonManager.Initialize();
 
 
 
                 _slashCommands = _client.UseSlashCommands();
+
 
 
                 _slashCommands.RegisterCommands<UtilitySlashCommands>();
@@ -80,23 +80,19 @@ namespace wiseoldmanV2
                 await _client.ConnectAsync();
 
                 // Initialize and start the health check timer
-                _healthCheckTimer = new System.Timers.Timer(900000); // 15 minutes in milliseconds
+                _healthCheckTimer = new System.Timers.Timer(900000); 
                 _healthCheckTimer.Elapsed += HealthCheckTimer_Elapsed;
                 _healthCheckTimer.AutoReset = true;
                 _healthCheckTimer.Start();
 
                 //Rust Meme Cache Builder;
-                // Parameters for RustMemeManager
-                ulong targetGuildId = 715197288984870932; // Replace with your target guild ID
-                ulong targetChannelId = 718127567273721897; // Replace with your target channel ID
-                string cacheFilePath = "rustmeme.cache"; // Replace with the path to your cache file
 
-                // Initialize RustMemeManager
+                ulong targetGuildId = 715197288984870932; 
+                ulong targetChannelId = 718127567273721897; 
+                string cacheFilePath = "rustmeme.cache"; 
+
                 _memeManager = new RustMemeManager(_client, targetGuildId, targetChannelId, cacheFilePath);
-                // Build the cache on startup
                 _memeManager.BuildCacheOnStartup();
-
-
                 _memeManager.StartCacheBuildingTimer();
 
                 await Task.Delay(-1);
@@ -119,10 +115,7 @@ namespace wiseoldmanV2
         {
             if (_client != null)
             {
-                // Disconnect the bot from Discord
                 await _client.DisconnectAsync();
-
-                // Dispose of the bot client to release resources
                 _client.Dispose();
             }
             else
@@ -217,8 +210,9 @@ namespace wiseoldmanV2
 
         }
 
-        public class UtilitySlashCommands : ApplicationCommandModule 
+        public class UtilitySlashCommands : ApplicationCommandModule
         {
+
 
             [SlashCommand("purge", "Deletes a given amount of messages in the channel.")]
             public async Task PurgeCommand(InteractionContext ctx, [Option("amount", "The number of messages to delete.")] long amount)
@@ -237,7 +231,7 @@ namespace wiseoldmanV2
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Invalid amount. Please specify a value between 1 and 100.").AsEphemeral(true));
                     return;
-                }  
+                }
 
                 var messages = await ctx.Channel.GetMessagesAsync((int)amount);
 
@@ -266,9 +260,9 @@ namespace wiseoldmanV2
                 }
                 Console.ForegroundColor = ConsoleColor.White;
                 // Delete the messages
-                //  await Task.Delay(1000);
+                await Task.Delay(1000);
                 await ctx.Channel.DeleteMessagesAsync(messages);
-                //await Task.Delay(300);
+                await Task.Delay(300);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Deleted {messages.Count} messages in {ctx.Channel.Name} by {ctx.Member.DisplayName} ({ctx.User.Id}).");
                 Console.ForegroundColor = ConsoleColor.White;
@@ -283,21 +277,75 @@ namespace wiseoldmanV2
 
             }
 
+            [SlashCommand("memecacheinfo", "Check the meme cache")]
+            public async Task CheckCacheCommand(InteractionContext ctx)
+            {
+                string cacheFilePath = "rustmeme.cache"; // Replace with the path to your cache file
+
+                // Check if the command is executed in a DM channel
+                //  if (ctx.Channel is DiscordDmChannel)
+                //  {
+                //  await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("This command is not available in DM channels.").AsEphemeral(true));
+                //     return;
+                //  }
+
+                // Read the contents of the cache file
+                string[] cacheLines = File.ReadAllLines(cacheFilePath);
+
+                // Parse the cache lines to extract meme information
+                List<Tuple<string, DateTime>> imageCache = new List<Tuple<string, DateTime>>();
+                foreach (string line in cacheLines)
+                {
+                    string[] parts = line.Split(',');
+                    if (parts.Length == 2 && DateTime.TryParse(parts[1], out DateTime date))
+                    {
+                        imageCache.Add(new Tuple<string, DateTime>(parts[0], date));
+                    }
+                }
+
+                if (imageCache.Count == 0)
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("The meme cache is empty or there was a problem fetching cache data."));
+                    return;
+                }
+
+                // Calculate the number of available memes
+                int memeCount = imageCache.Count;
+
+                // Find the oldest and newest memes
+                DateTime oldestMemeDate = imageCache.Min(item => item.Item2);
+                DateTime newestMemeDate = imageCache.Max(item => item.Item2);
+
+                // Create an embedded message with the cache information
+                var embed = new DiscordEmbedBuilder()
+                    .WithTitle("Meme Cache Data:")
+                    .AddField("Messages Scanned to Date", memeCount.ToString(), true)
+                    .AddField("Oldest Meme Date", oldestMemeDate.ToString("yyyy-MM-dd HH:mm:ss"), true)
+                    .AddField("Newest Meme Date", newestMemeDate.ToString("yyyy-MM-dd HH:mm:ss"), true)
+                    .WithColor(DiscordColor.White)
+                    .Build();
+
+                
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed));
+            }
+
+
+
             [SlashCommand("source", "View Wise Old Man's Open Sourcecode")]
             public async Task SourceCodeCommand(InteractionContext ctx)
             {
-                // GitHub repository URL
+               
                 string githubRepoUrl = "https://api.github.com/repos/Nathant995/WiseOldManV2";
 
-                //Logging
+               
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 Console.WriteLine($"[GIT] Source Code Requested from {ctx.Member.Username} in guild {ctx.Guild.Name}, channel {ctx.Channel.Name} at {DateTime.Now} - Message sent successfully.");
                 Console.ForegroundColor = ConsoleColor.White;
 
-                // Bot avatar URL
+                
                 string botAvatarUrl = ctx.Client.CurrentUser.AvatarUrl;
 
-                // Fetch additional information from the GitHub API
+               
                 var httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("User-Agent", "WiseOldMan");
 
@@ -306,32 +354,32 @@ namespace wiseoldmanV2
                 {
                     string responseBody = await response.Content.ReadAsStringAsync();
 
-                    // Parse the JSON response to extract repository information
+                    
                     var repoInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(responseBody);
                     string repoDescription = repoInfo.description;
                     int starsCount = repoInfo.stargazers_count;
 
-                    // Get the total number of commits for the repository
+                   
                     HttpResponseMessage commitResponse = await httpClient.GetAsync(githubRepoUrl + "/commits");
                     var commitInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(await commitResponse.Content.ReadAsStringAsync());
                     int commitCount = commitInfo.Count;
 
-                    // Get the total number of releases for the repository
+                    
                     HttpResponseMessage releaseResponse = await httpClient.GetAsync(githubRepoUrl + "/releases");
                     var releaseInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(await releaseResponse.Content.ReadAsStringAsync());
                     int releaseCount = releaseInfo.Count;
 
-                    // Create an embed with information
+                    
                     var embedBuilder = new DiscordEmbedBuilder
                     {
                         Title = "Under The Hood",
                         Description = $"The Wise Old Man's Source Code can be found [here](https://github.com/Nathant995/WiseOldManV2).",
-                        Color = new DiscordColor(0x7289DA), 
-                        ImageUrl = botAvatarUrl, 
-                        Url = githubRepoUrl, 
+                        Color = new DiscordColor(0x7289DA),
+                        ImageUrl = botAvatarUrl,
+                        Url = githubRepoUrl,
                     };
 
-                    // Add additional information to the embed
+                    
                     embedBuilder.AddField("Description", repoDescription, false);
                     embedBuilder.AddField("Stars", starsCount.ToString(), false);
                     embedBuilder.AddField("Total Commits", commitCount.ToString(), false);
@@ -352,8 +400,8 @@ namespace wiseoldmanV2
             [SlashCommand("noranks", "No ranks online reporting tool")]
             public async Task NoRanksCommand(InteractionContext ctx)
             {
-                ulong targetGuildId = 715197288984870932; 
-                ulong targetChannelId = 715198677173534743; 
+                ulong targetGuildId = 715197288984870932;
+                ulong targetChannelId = 715198677173534743;
 
                 var embed = new DiscordEmbedBuilder
                 {
@@ -382,7 +430,7 @@ namespace wiseoldmanV2
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                             .WithContent("W00ters ranks have been notified, \n \n **You do not need to send another.** \n \n Thank you! \n \n *Wooters Ranks*"));
 
-                        // Log to console
+                        
                         Console.ForegroundColor = ConsoleColor.DarkYellow;
                         Console.WriteLine($"[ALERT] Command executed by {ctx.Member.Username} in guild {ctx.Guild.Name}, channel {textChannel.Name} at {DateTime.Now} - Message sent successfully.");
                     }
@@ -391,7 +439,7 @@ namespace wiseoldmanV2
                         await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                             .WithContent("Oops, I was unable to send that report! Try again later."));
 
-                        // Log to console
+                       
                         Console.ForegroundColor = ConsoleColor.DarkYellow;
                         Console.WriteLine($"[ALERT] Command executed by {ctx.Member.Username} in guild {ctx.Guild.Name} at {DateTime.Now} - Could not find the specified channel, does the bot have permissions \n Maybe the channel does not exist?");
                     }
@@ -401,14 +449,16 @@ namespace wiseoldmanV2
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                         .WithContent("Oops, I was unable to send that report! I'm having trouble connecting to the guild. Try again later."));
 
-                    // Log to console
+                    
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine($"[ALERT] Command executed by {ctx.Member.Username} at {DateTime.Now} - Could not find the specified guild. (Check if the bot is part of W00ters Rank Hub)");
                 }
 
-                // Reset console text color to white
+               
                 Console.ForegroundColor = ConsoleColor.White;
             }
+
+
 
             [SlashCommand("events", "Upcoming events")]
             public async Task EventsCommand(InteractionContext ctx)
@@ -436,7 +486,7 @@ namespace wiseoldmanV2
                     switch (eventName)
                     {
                         case "Christmas":
-                             eventName += " 🎄";
+                            eventName += " 🎄";
                             break;
                         case "Halloween":
                             eventName += " 🎃";
@@ -450,13 +500,13 @@ namespace wiseoldmanV2
                     var unixTimestamp = ((DateTimeOffset)holidayEvent.Date).ToUnixTimeSeconds();
 
                     embed.AddField(eventName, $"{holidayEvent.Date:MMM dd, yyyy}\n <t:{unixTimestamp}:R>", false);
-                    
+
                 }
 
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AddComponents(greenButton));
             }
 
-          
+
 
 
             [SlashCommand("Ping", "Check the bot's connection")]
@@ -473,4 +523,5 @@ namespace wiseoldmanV2
         }
     }
 }
+
 

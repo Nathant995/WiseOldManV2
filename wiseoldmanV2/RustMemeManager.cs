@@ -96,7 +96,7 @@ namespace wiseoldmanV2
             SaveImageCache();
         }
 
-        private void CacheBuildingCallback(object sender, System.Timers.ElapsedEventArgs e)
+        public void CacheBuildingCallback(object sender, System.Timers.ElapsedEventArgs e)
         {
             Console.WriteLine("Building cache over time...");
 
@@ -221,7 +221,7 @@ namespace wiseoldmanV2
             await ctx.CreateResponseAsync(DSharpPlus.InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed));
         }
 
-        private void LoadImageCache()
+        public List<Tuple<string, DateTime>> LoadImageCache()
         {
             // Load the cache from the file if it exists, or create an empty list
             if (File.Exists(_cacheFilePath))
@@ -241,9 +241,14 @@ namespace wiseoldmanV2
             {
                 _imageCache = new List<Tuple<string, DateTime>>();
             }
-        }
 
-        private void SaveImageCache()
+            return _imageCache; // Return the loaded cache
+        }
+    
+
+
+
+        public void SaveImageCache()
         {
             // Save the cache to the file
             var lines = _imageCache.Select(item => $"{item.Item1},{item.Item2.ToString("O")}").ToArray();

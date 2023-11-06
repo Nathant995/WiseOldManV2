@@ -85,7 +85,7 @@ namespace wiseoldmanV2
             var memeManager = new RustMemeManager(ctx.Client, targetGuildId, targetChannelId, cacheFilePath);
             await memeManager.GetRandomRustMeme(ctx);
         }
-
+      
 
 
         [SlashCommand("markdonalds", "Get that sweet MarkyDs")]

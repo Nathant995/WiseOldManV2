@@ -9,7 +9,7 @@ namespace wiseoldmanV2
         [STAThread]
         static void Main()
         {
-            string version = "0.6.18";
+            string version = "0.6.20";
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("version: " + version);
             Console.WriteLine("W E L C O M E   T O   T H E   O L D    M A N   D I S C O R D   B O T !");
